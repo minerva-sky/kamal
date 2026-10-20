@@ -22,7 +22,19 @@ class Kamal::Configuration::Proxy
   end
 
   def ssl?
-    proxy_config.fetch("ssl", false)
+    ssl = proxy_config.fetch("ssl", false)
+    ssl.is_a?(Hash) ? true : ssl
+  end
+
+  # kamal-proxy --tls-on-demand-url: certificates are issued for any host this
+  # endpoint approves, so no static host list is needed.
+  def on_demand_tls_url
+    ssl = proxy_config["ssl"]
+    ssl["on_demand_url"].presence if ssl.is_a?(Hash)
+  end
+
+  def on_demand_tls?
+    on_demand_tls_url.present?
   end
 
   def hosts
@@ -71,6 +83,7 @@ class Kamal::Configuration::Proxy
     {
       host: hosts,
       tls: ssl? ? true : nil,
+      "tls-on-demand-url": on_demand_tls_url,
       "tls-certificate-path": container_tls_cert,
       "tls-private-key-path": container_tls_key,
       "deploy-timeout": seconds_duration(config.deploy_timeout),

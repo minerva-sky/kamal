@@ -109,4 +109,39 @@ class ConfigurationProxyTest < ActiveSupport::TestCase
     def config
       Kamal::Configuration.new(@deploy)
     end
+
+  test "ssl with on-demand url and no host" do
+    @deploy[:proxy] = { "ssl" => { "on_demand_url" => "/tls/allow" } }
+    assert_equal true, config.proxy.ssl?
+    assert_equal "/tls/allow", config.proxy.on_demand_tls_url
+    assert config.proxy.on_demand_tls?
+    assert_equal [], config.proxy.hosts
+  end
+
+  test "ssl with on-demand url and a host" do
+    @deploy[:proxy] = { "ssl" => { "on_demand_url" => "http://localhost:4567/check" }, "host" => "example.com" }
+    assert_equal true, config.proxy.ssl?
+    assert_equal [ "example.com" ], config.proxy.hosts
+  end
+
+  test "ssl hash without on-demand url still needs a host" do
+    @deploy[:proxy] = { "ssl" => { "on_demand_url" => "" } }
+    assert_raises(Kamal::ConfigurationError) { config.proxy.ssl? }
+  end
+
+  test "deploy options with on-demand tls" do
+    @deploy[:proxy] = { "ssl" => { "on_demand_url" => "/tls/allow" } }
+
+    options = config.proxy.deploy_options
+    assert_equal true, options[:tls]
+    assert_equal "/tls/allow", options[:"tls-on-demand-url"]
+    assert_equal [], options[:host]
+    assert_nil options[:"tls-certificate-path"]
+  end
+
+  test "deploy options without on-demand tls omit the flag" do
+    @deploy[:proxy] = { "ssl" => true, "host" => "example.com" }
+    assert_nil config.proxy.deploy_options[:"tls-on-demand-url"]
+  end
+
 end

@@ -3,8 +3,8 @@ class Kamal::Configuration::Validator::Proxy < Kamal::Configuration::Validator
     unless config.nil?
       super
 
-      if config["host"].blank? && config["hosts"].blank? && config["ssl"]
-        error "Must set a host to enable automatic SSL"
+      if config["host"].blank? && config["hosts"].blank? && config["ssl"] && !on_demand_tls?(config)
+        error "Must set a host (or ssl.on_demand_url) to enable automatic SSL"
       end
 
       if (config.keys & [ "host", "hosts" ]).size > 1
@@ -36,6 +36,10 @@ class Kamal::Configuration::Validator::Proxy < Kamal::Configuration::Validator
   end
 
   private
+    def on_demand_tls?(config)
+      config["ssl"].is_a?(Hash) && config["ssl"]["on_demand_url"].present?
+    end
+
     def ensure_valid_bind_ips(bind_ips)
       bind_ips.present? && bind_ips.each do |ip|
         next if ip =~ Resolv::IPv4::Regex || ip =~ Resolv::IPv6::Regex

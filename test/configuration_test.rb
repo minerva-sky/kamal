@@ -389,7 +389,7 @@ class ConfigurationTest < ActiveSupport::TestCase
       Kamal::Configuration.new(@deploy_with_roles)
     end
 
-    assert_equal "servers/workers/proxy: Must set a host to enable automatic SSL", exception.message
+    assert_equal "servers/workers/proxy: Must set a host (or ssl.on_demand_url) to enable automatic SSL", exception.message
   end
 
   test "proxy ssl roles with multiple servers" do

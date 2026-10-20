@@ -59,6 +59,19 @@ proxy:
   ssl:
     certificate_pem: CERTIFICATE_PEM
     private_key_pem: PRIVATE_KEY_PEM
+  #
+  # On-demand TLS (kamal-proxy v0.10.0+)
+  #
+  # Instead of a static host list, kamal-proxy can obtain a certificate for any
+  # hostname your application approves, which is how you serve customer custom
+  # domains without a deploy per host. Before issuing, the proxy sends
+  # `GET <on_demand_url>?host=<name>` (with the same Host header): a 200 allows
+  # issuance, anything else denies it. The URL may be absolute (called directly)
+  # or a path routed through your app. `host`/`hosts` may be omitted; the proxy
+  # then accepts every hostname, so your app must reject hosts it doesn't serve
+  # (Rails host authorization, for example):
+  ssl:
+    on_demand_url: /tls/allow
   # ### Notes
   # - If the certificate or key is missing or invalid, deployments will fail.
   # - Always handle SSL certificates and private keys securely. Avoid hard-coding them in source control.
